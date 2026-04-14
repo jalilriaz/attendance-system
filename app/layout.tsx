@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Madrasa Karam Khan | Attendance Management System",
+  title: "Madrassa Karam Khan",
   description:
     "Official attendance management system for Madrasa Karam Khan. Manage teacher attendance, leave requests, and academic schedules.",
 };
