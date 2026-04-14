@@ -17,7 +17,6 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
-    "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -31,6 +30,8 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
+    "install": "^0.13.0",
+    "pg": "^8.20.0",
     "prisma": "^7.7.0",
     "tailwindcss": "^4",
     "typescript": "^5"
