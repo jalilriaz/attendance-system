@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── USER ─────────────────────────────────────────
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  role          String   // 'teacher' or 'admin'
+  email         String   @unique
+  password      String
+  totalTimeDebt Int      @default(0) // Time debt in minutes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  attendances Attendance[]
+  leaves      Leave[]
+}
+
+// ─── ATTENDANCE ───────────────────────────────────
+model Attendance {
+  id             String    @id @default(cuid())
+  userId         String
+  date           DateTime  @db.Date
+  checkIn        DateTime?
+  checkOut       DateTime?
+  workingHours   Float?
+  deficitMinutes Int?      // Track minute deficit per day
+  status         String    // 'Present', 'Late', 'Half-day', 'Absent'
+  createdAt      DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+// ─── HOLIDAY ──────────────────────────────────────
+model Holiday {
+  id    String   @id @default(cuid())
+  title String   // e.g., 'Labour Day'
+  date  DateTime @db.Date @unique
+}
+
+// ─── LEAVE ────────────────────────────────────────
+model Leave {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  reason    String
+  status    String   @default("Pending") // 'Pending', 'Approved', 'Rejected'
+  type      String   @default("Paid")    // 'Paid' or 'Unpaid'
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
