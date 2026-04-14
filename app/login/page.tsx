@@ -15,6 +15,7 @@ import {
     GraduationCap,
     AlertCircle,
     CheckCircle2,
+    School,
 } from "lucide-react";
 
 type Role = "teacher" | "admin";
@@ -140,7 +141,7 @@ export default function LoginPage() {
                                 : "text-gray-500 hover:text-gray-300"
                                 }`}
                         >
-                            <ShieldCheck size={16} />
+                            <School size={16} />
                             Admin
                         </button>
                     </div>
@@ -158,7 +159,7 @@ export default function LoginPage() {
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2 text-amber-400">
-                                    <ShieldCheck size={18} />
+                                    <School size={18} />
                                     <span className="text-sm font-semibold">
                                         Admin Login
                                     </span>

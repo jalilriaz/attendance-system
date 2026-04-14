@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-    ShieldCheck,
+    GraduationCap,
     LayoutDashboard,
     Users,
     CalendarDays,
@@ -71,7 +71,7 @@ export default function AdminPortalClient() {
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                                <ShieldCheck
+                                <GraduationCap
                                     size={18}
                                     className="text-white"
                                 />

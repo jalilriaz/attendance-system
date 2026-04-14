@@ -14,6 +14,7 @@ import {
     Loader2,
     LogIn,
     LogOut as LogOutIcon,
+    BookOpen,
 } from "lucide-react";
 
 interface Stats {
@@ -149,7 +150,7 @@ export default function AdminDashboardContent({
                     <div className="p-4 sm:p-6">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center">
-                                <LayoutDashboard
+                                <BookOpen
                                     size={20}
                                     className="text-amber-400"
                                 />
