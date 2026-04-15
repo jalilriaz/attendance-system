@@ -10,6 +10,8 @@ import {
     XCircle,
     Calendar,
     Sparkles,
+    Edit2,
+    Save
 } from "lucide-react";
 
 interface Holiday {
@@ -32,6 +34,12 @@ export default function ManageHolidays() {
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [toast, setToast] = useState<Toast | null>(null);
     const [showForm, setShowForm] = useState(false);
+
+    // Editing states
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editDate, setEditDate] = useState("");
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
 
     const showToast = (message: string, type: "success" | "error") => {
         setToast({ message, type });
@@ -101,6 +109,38 @@ export default function ManageHolidays() {
             showToast("Network error.", "error");
         } finally {
             setDeletingId(null);
+        }
+    };
+
+    const handleEditClick = (holiday: Holiday) => {
+        setEditingId(holiday.id);
+        setEditTitle(holiday.title);
+        // Ensure date is in YYYY-MM-DD format for date input
+        const isoDate = new Date(holiday.date).toISOString().split("T")[0];
+        setEditDate(isoDate);
+    };
+
+    const handleUpdateHoliday = async (id: string) => {
+        if (!editTitle.trim() || !editDate) return;
+        setUpdatingId(id);
+        try {
+            const res = await fetch(`/api/admin/holidays/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: editTitle.trim(), date: editDate }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast("Holiday updated successfully.", "success");
+                setEditingId(null);
+                await fetchHolidays();
+            } else {
+                showToast(data.error, "error");
+            }
+        } catch {
+            showToast("Network error.", "error");
+        } finally {
+            setUpdatingId(null);
         }
     };
 
@@ -288,51 +328,82 @@ export default function ManageHolidays() {
                                             {monthHolidays.map((holiday) => (
                                                 <div
                                                     key={holiday.id}
-                                                    className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors border border-white/[0.03] group"
+                                                    className="p-3.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors border border-white/[0.03] group"
                                                 >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                                                            <CalendarDays
-                                                                size={16}
-                                                                className="text-amber-400"
+                                                    {editingId === holiday.id ? (
+                                                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                                            <input
+                                                                type="text"
+                                                                value={editTitle}
+                                                                onChange={(e) => setEditTitle(e.target.value)}
+                                                                className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                                                                autoFocus
                                                             />
+                                                            <input
+                                                                type="date"
+                                                                value={editDate}
+                                                                onChange={(e) => setEditDate(e.target.value)}
+                                                                className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 [color-scheme:dark]"
+                                                            />
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    onClick={() => handleUpdateHoliday(holiday.id)}
+                                                                    disabled={updatingId === holiday.id}
+                                                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm transition-colors"
+                                                                >
+                                                                    {updatingId === holiday.id ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                                                    Save
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingId(null)}
+                                                                    className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white/5 text-gray-400 hover:text-white rounded-lg text-sm transition-colors"
+                                                                >
+                                                                    <XCircle size={14} />
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-sm font-medium text-white">
-                                                                {holiday.title}
-                                                            </p>
-                                                            <p className="text-xs text-gray-500">
-                                                                {formatDate(
-                                                                    holiday.date
-                                                                )}
-                                                            </p>
+                                                    ) : (
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-9 h-9 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                                                                    <CalendarDays
+                                                                        size={16}
+                                                                        className="text-amber-400"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm font-medium text-white">
+                                                                        {holiday.title}
+                                                                    </p>
+                                                                    <p className="text-xs text-gray-500">
+                                                                        {formatDate(holiday.date)}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                                <button
+                                                                    onClick={() => handleEditClick(holiday)}
+                                                                    className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 px-3 py-1.5 rounded-lg transition-all cursor-pointer border border-sky-500/20"
+                                                                >
+                                                                    <Edit2 size={12} />
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteHoliday(holiday.id)}
+                                                                    disabled={deletingId === holiday.id}
+                                                                    className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/15 px-3 py-1.5 rounded-lg transition-all cursor-pointer disabled:opacity-50 border border-red-500/20"
+                                                                >
+                                                                    {deletingId === holiday.id ? (
+                                                                        <Loader2 size={12} className="animate-spin" />
+                                                                    ) : (
+                                                                        <Trash2 size={12} />
+                                                                    )}
+                                                                    Remove
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleDeleteHoliday(
-                                                                holiday.id
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            deletingId ===
-                                                            holiday.id
-                                                        }
-                                                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/15 px-3 py-1.5 rounded-lg transition-all cursor-pointer disabled:opacity-50 border border-red-500/20"
-                                                    >
-                                                        {deletingId ===
-                                                        holiday.id ? (
-                                                            <Loader2
-                                                                size={12}
-                                                                className="animate-spin"
-                                                            />
-                                                        ) : (
-                                                            <Trash2
-                                                                size={12}
-                                                            />
-                                                        )}
-                                                        Remove
-                                                    </button>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>

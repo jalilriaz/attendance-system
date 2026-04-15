@@ -53,7 +53,18 @@ export async function PATCH(request: NextRequest) {
         }
         
         const dayOfWeek = dateObj.getUTCDay(); // 0 is Sun, 5 is Fri
-        const expectedMinutes = dayOfWeek === 5 ? 240 : 420;
+        const isSunday = dayOfWeek === 0;
+        
+        const holiday = await prisma.holiday.findFirst({
+            where: { date: dateObj },
+        });
+
+        let expectedMinutes = 420; // 7 hours
+        if (isSunday || holiday) {
+            expectedMinutes = 0;
+        } else if (dayOfWeek === 5) {
+            expectedMinutes = 240; // Friday
+        }
 
         let workingHours: number | null = null;
         let newDeficitMinutes: number | null = null;

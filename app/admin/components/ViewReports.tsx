@@ -167,51 +167,81 @@ export default function ViewReports() {
     }, [selectedYear, viewMode]);
 
     // ── CSV Export ─────────────────────────────────
-    const exportToCSV = () => {
-        if (!monthlyData) return;
+    const [exporting, setExporting] = useState(false);
 
-        const headers = [
-            "Teacher Name",
-            "Email",
-            "Expected Working Days",
-            "Present Days",
-            "Late Days",
-            "Absent Days",
-            "Paid Leaves",
-            "Unpaid Leaves",
-            "Expected Hours",
-            "Worked Hours",
-            "Deficit Hours",
-            "Total Time Debt (Minutes)",
-        ];
+    const exportToCSV = async () => {
+        setExporting(true);
+        try {
+            let url: string;
+            let filename: string;
 
-        const rows = monthlyData.reports.map((report) => [
-            `"${report.teacher.name}"`,
-            `"${report.teacher.email}"`,
-            report.monthly.expectedWorkingDays,
-            report.monthly.presentDays,
-            report.monthly.lateDays,
-            report.monthly.absentDays,
-            report.monthly.paidLeaves,
-            report.monthly.unpaidLeaves,
-            report.monthly.expectedMonthlyHours,
-            report.monthly.totalWorkingHours,
-            report.monthly.hourDeficit,
-            report.monthly.totalTimeDebt,
-        ]);
+            if (viewMode === "yearly") {
+                url = `/api/admin/reports/daily?mode=yearly&year=${selectedYear}`;
+                filename = `attendance_report_${selectedYear}.csv`;
+            } else {
+                const [year, month] = selectedMonth.split("-");
+                url = `/api/admin/reports/daily?mode=monthly&month=${month}&year=${year}`;
+                const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleString("en-US", { month: "long" });
+                filename = `attendance_report_${monthName}_${year}.csv`;
+            }
 
-        const csvContent = [
-            headers.join(","),
-            ...rows.map((row) => row.join(",")),
-        ].join("\n");
+            const res = await fetch(url);
+            const result = await res.json();
 
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", `payroll_report_${selectedMonth}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            if (!result.success || !result.records || result.records.length === 0) {
+                alert("No records found for the selected period.");
+                return;
+            }
+
+            const headers = [
+                "Teacher Name",
+                "Email",
+                "Date",
+                "Day",
+                "Status",
+                "Check In (PKT)",
+                "Check Out (PKT)",
+                "Working Hours",
+            ];
+
+            const rows = result.records.map((r: {
+                teacherName: string;
+                teacherEmail: string;
+                date: string;
+                day: string;
+                status: string;
+                checkIn: string | null;
+                checkOut: string | null;
+                workingHours: number | null;
+            }) => [
+                `"${r.teacherName}"`,
+                `"${r.teacherEmail}"`,
+                r.date,
+                r.day,
+                r.status === "—" ? `""` : `"${r.status}"`,
+                r.checkIn ? `"${r.checkIn}"` : `""`,
+                r.checkOut ? `"${r.checkOut}"` : `""`,
+                r.workingHours != null ? r.workingHours.toFixed(2) : `""`,
+            ]);
+
+            const csvContent = [
+                headers.join(","),
+                ...rows.map((row: string[]) => row.join(",")),
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("Failed to export CSV. Please try again.");
+        } finally {
+            setExporting(false);
+        }
     };
 
     const getAttendancePercentage = (report: TeacherReport) => {
@@ -276,12 +306,27 @@ export default function ViewReports() {
                             </div>
 
                             <div className="flex gap-2 items-center">
+                                <button
+                                    onClick={exportToCSV}
+                                    disabled={exporting || !yearlyData || yearlyData.months.length === 0}
+                                    className="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm font-medium transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                                >
+                                    {exporting ? (
+                                        <Loader2 size={14} className="animate-spin" />
+                                    ) : (
+                                        <Download size={14} />
+                                    )}
+                                    <span className="hidden sm:inline">
+                                        {exporting ? "Exporting..." : "Export CSV"}
+                                    </span>
+                                </button>
                                 {/* Toggle back to monthly */}
                                 <button
                                     onClick={() => setViewMode("monthly")}
-                                    className="px-3 py-2 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-400 rounded-xl text-sm font-medium transition cursor-pointer"
+                                    className="px-3 py-2 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-400 rounded-xl text-sm font-medium transition cursor-pointer flex items-center gap-1.5"
                                 >
-                                    Monthly View
+                                    <BarChart3 size={14} />
+                                    <span className="hidden sm:inline">Monthly View</span>
                                 </button>
                                 {/* Year picker */}
                                 <select
@@ -407,11 +452,17 @@ export default function ViewReports() {
                             </button>
                             <button
                                 onClick={exportToCSV}
-                                disabled={!data || data.reports.length === 0}
+                                disabled={exporting || !data || data.reports.length === 0}
                                 className="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm font-medium transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                             >
-                                <Download size={14} />
-                                <span className="hidden sm:inline">Export CSV</span>
+                                {exporting ? (
+                                    <Loader2 size={14} className="animate-spin" />
+                                ) : (
+                                    <Download size={14} />
+                                )}
+                                <span className="hidden sm:inline">
+                                    {exporting ? "Exporting..." : "Export CSV"}
+                                </span>
                             </button>
                             <input
                                 type="month"

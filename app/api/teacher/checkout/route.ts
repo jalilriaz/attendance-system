@@ -40,13 +40,25 @@ export async function POST() {
             );
         }
 
-        // ── Calculate working hours and deficit ───────
+        // ── Check if today is a custom holiday ──────────
+        const isSunday = dayOfWeek === 0;
+        const holiday = await prisma.holiday.findFirst({
+            where: { date: todayUTC },
+        });
+
         const checkInTime = new Date(attendance.checkIn!);
         const diffMs = now.getTime() - checkInTime.getTime();
         const workingMinutes = Math.floor(diffMs / (1000 * 60));
         const workingHours = parseFloat((workingMinutes / 60).toFixed(2));
 
-        const expectedMinutes = dayOfWeek === 5 ? 240 : 420;
+        // ── Calculate expected minutes and deficit ────
+        let expectedMinutes = 420; // 7 hours default
+        if (isSunday || holiday) {
+            expectedMinutes = 0; // Off days have no required hours
+        } else if (dayOfWeek === 5) {
+            expectedMinutes = 240; // Friday
+        }
+
         let deficitMinutes = expectedMinutes - workingMinutes;
         
         // Clamp the deficit at zero if they worked overtime
@@ -57,15 +69,19 @@ export async function POST() {
         // ── Determine final status ────────────────────
         let status = attendance.status;
 
-        if (dayOfWeek === 5) {
-            if (workingHours >= 4) {
-                status = attendance.status === "Late" ? "Late" : "Present";
+        // If today is a holiday or Sunday, any work is effectively extra, 
+        // status doesn't have to be penalized as Half-day.
+        if (!isSunday && !holiday) {
+            if (dayOfWeek === 5) {
+                if (workingHours >= 4) {
+                    status = attendance.status === "Late" ? "Late" : "Present";
+                } else {
+                    status = "Half-day";
+                }
             } else {
-                status = "Half-day";
-            }
-        } else {
-            if (workingHours < 6) {
-                status = "Half-day";
+                if (workingHours < 6) {
+                    status = "Half-day";
+                }
             }
         }
 

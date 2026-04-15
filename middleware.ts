@@ -42,8 +42,8 @@ async function resolveAuth(request: NextRequest) {
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // ─── Guard: Redirect logged-in users AWAY from /login ───
-    if (pathname === "/login") {
+    // ─── Guard: Redirect logged-in users AWAY from /login & password routes ───
+    if (pathname === "/login" || pathname === "/forgot-password" || pathname === "/reset-password") {
         const auth = await resolveAuth(request);
         if (auth) {
             const role = auth.payload.role as string;
@@ -93,5 +93,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/login", "/teacher/:path*", "/admin/:path*"],
+    matcher: ["/login", "/forgot-password", "/reset-password", "/teacher/:path*", "/admin/:path*"],
 };

@@ -59,28 +59,38 @@ export async function processAutoAbsences() {
             return; // Everyone is accounted for
         }
 
-        // ── 5. Bulk create "Absent" records ───────────────────────
-        // We set checkIn and checkOut to null. The schema requires checkIn to be DateTime,
-        // but looking at `prisma/schema.prisma` the checkIn might not be optional.
-        // Let's verify the schema for `Attendance`.
-        
-        // Actually, checkIn is DateTime. If absent, we might just store current timestamp, 
-        // or the schema might require changes, but usually we just set checkIn = date
-        // Let's use the current time for `checkIn` but `status` = "Absent", workingHours = 0.
-        // The check-in override UI will let admin fix it.
+        // ── 5. Bulk create "Absent" records and update Debt ──────────
+        const dayOfWeek = karachiTime.getDay(); // 0 is Sun, 5 is Fri
+        const expectedMinutes = dayOfWeek === 5 ? 240 : 420;
 
-        await prisma.attendance.createMany({
-            data: missingTeachers.map(t => ({
-                userId: t.id,
-                date: todayUTC,
-                checkIn: now, // required by schema, but status dictates it means nothing
-                status: "Absent",
-                workingHours: 0
-            })),
-            skipDuplicates: true // Just in case concurrency causes race conditions
+        await prisma.$transaction(async (tx) => {
+            // First, get all the IDs of teachers we are about to mark absent
+            const userIds = missingTeachers.map(t => t.id);
+
+            // Create the attendance records
+            await tx.attendance.createMany({
+                data: userIds.map(id => ({
+                    userId: id,
+                    date: todayUTC,
+                    checkIn: null, 
+                    checkOut: null,
+                    status: "Absent",
+                    workingHours: 0,
+                    deficitMinutes: expectedMinutes
+                })),
+                skipDuplicates: true
+            });
+
+            // Update the debt for all these teachers
+            await tx.user.updateMany({
+                where: { id: { in: userIds } },
+                data: {
+                    totalTimeDebt: { increment: expectedMinutes }
+                }
+            });
         });
 
-        console.log(`Auto-marked ${missingTeachers.length} teachers as Absent at 12 PM.`);
+        console.log(`Auto-marked ${missingTeachers.length} teachers as Absent at 12 PM with ${expectedMinutes} deficit minutes.`);
 
     } catch (error) {
         console.error("Auto absence processing failed:", error);

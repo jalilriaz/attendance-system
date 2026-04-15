@@ -145,6 +145,7 @@ export default function ManageTeachers() {
     }
 
     return (
+    <>
         <div className="glass-strong rounded-2xl overflow-hidden animate-fade-in-up">
             <div className="h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400" />
             <div className="p-4 sm:p-6">
@@ -317,20 +318,21 @@ export default function ManageTeachers() {
                     </div>
                 </div>
             </div>
-            
-            {/* Render Override Dialog */}
-            {overrideData && (
-                <AttendanceOverrideDialog
-                    attendanceId={overrideData.attendanceId}
-                    teacherId={overrideData.teacherId}
-                    teacherName={overrideData.teacherName}
-                    currentCheckIn={overrideData.currentCheckIn}
-                    currentCheckOut={overrideData.currentCheckOut}
-                    currentStatus={overrideData.currentStatus}
-                    onClose={() => setOverrideData(null)}
-                    onSuccess={fetchTeachers}
-                />
-            )}
         </div>
+
+        {/* Render Override Dialog — OUTSIDE glass-strong to escape overflow-hidden + backdrop-filter */}
+        {overrideData && (
+            <AttendanceOverrideDialog
+                attendanceId={overrideData.attendanceId}
+                teacherId={overrideData.teacherId}
+                teacherName={overrideData.teacherName}
+                currentCheckIn={overrideData.currentCheckIn}
+                currentCheckOut={overrideData.currentCheckOut}
+                currentStatus={overrideData.currentStatus}
+                onClose={() => setOverrideData(null)}
+                onSuccess={fetchTeachers}
+            />
+        )}
+    </>
     );
 }
