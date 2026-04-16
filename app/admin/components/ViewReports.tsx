@@ -301,7 +301,7 @@ export default function ViewReports() {
                                         Yearly Overview — {yearlyData.year}
                                     </h2>
                                     <p className="text-sm text-gray-500">
-                                        Month-by-month breakdown of working days & vacations
+                                        Full year attendance, hours worked & leaves at a glance
                                     </p>
                                 </div>
                             </div>
@@ -345,11 +345,11 @@ export default function ViewReports() {
                         {/* Yearly Totals */}
                         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                             {[
-                                { label: "Calendar Days", value: yearlyData.totals.totalCalendarDays, color: "text-white" },
+                                { label: "Total Days", value: yearlyData.totals.totalCalendarDays, color: "text-white" },
                                 { label: "Sundays Off", value: yearlyData.totals.totalSundays, color: "text-orange-400" },
                                 { label: "Holidays", value: yearlyData.totals.totalHolidays, color: "text-amber-400" },
                                 { label: "Working Days", value: yearlyData.totals.totalWorkingDays, color: "text-emerald-400" },
-                                { label: "Expected Hours", value: `${yearlyData.totals.totalExpectedHours}h`, color: "text-sky-400" },
+                                { label: "Required Hours", value: `${yearlyData.totals.totalExpectedHours}h`, color: "text-sky-400" },
                             ].map((stat, i) => (
                                 <div key={i} className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/5">
                                     <p className="text-xs text-gray-500 mb-0.5">{stat.label}</p>
@@ -369,12 +369,12 @@ export default function ViewReports() {
                                     <tr className="text-gray-500 border-b border-white/5">
                                         <th className="text-left py-3 pr-4 font-medium">Month</th>
                                         <th className="text-center py-3 px-3 font-medium">Holidays</th>
-                                        <th className="text-center py-3 px-3 font-medium">Exp. Days</th>
+                                        <th className="text-center py-3 px-3 font-medium">Required Days</th>
                                         <th className="text-center py-3 px-3 font-medium text-emerald-400">Present</th>
                                         <th className="text-center py-3 px-3 font-medium text-rose-400">Absent</th>
-                                        <th className="text-center py-3 px-3 font-medium">Exp. Hrs</th>
-                                        <th className="text-center py-3 px-3 font-medium text-sky-400">Actual Hrs</th>
-                                        <th className="text-center py-3 px-3 font-medium text-amber-400">Deficit</th>
+                                        <th className="text-center py-3 px-3 font-medium">Required Hrs</th>
+                                        <th className="text-center py-3 px-3 font-medium text-sky-400">Hours Worked</th>
+                                        <th className="text-center py-3 px-3 font-medium text-amber-400">Shortage</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -450,7 +450,7 @@ export default function ViewReports() {
                                     Attendance Reports
                                 </h2>
                                 <p className="text-sm text-gray-500">
-                                    Monthly breakdown per teacher
+                                    Monthly summary — attendance, hours & leaves
                                 </p>
                             </div>
                         </div>
@@ -490,11 +490,11 @@ export default function ViewReports() {
                     {data && (
                         <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                             {[
-                                { label: "Calendar Days", value: data.period.totalCalendarDays, color: "text-white", icon: CalendarDays },
+                                { label: "Total Days", value: data.period.totalCalendarDays, color: "text-white", icon: CalendarDays },
                                 { label: "Sundays Off", value: data.period.totalSundays, color: "text-orange-400", icon: Sun },
                                 { label: "Holidays", value: data.period.totalHolidays, color: "text-amber-400", icon: CalendarOff },
                                 { label: "Working Days", value: data.period.expectedWorkingDays, color: "text-emerald-400", icon: CalendarCheck },
-                                { label: "Expected Hours", value: `${data.period.expectedMonthlyHours}h`, color: "text-sky-400", icon: Clock },
+                                { label: "Required Hours", value: `${data.period.expectedMonthlyHours}h`, color: "text-sky-400", icon: Clock },
                             ].map((stat, i) => (
                                 <div key={i} className="bg-white/[0.03] rounded-xl p-3 text-center border border-white/5">
                                     <stat.icon size={14} className={`mx-auto mb-1 ${stat.color} opacity-60`} />
@@ -623,12 +623,12 @@ export default function ViewReports() {
                                 {/* Quick stats */}
                                 <div className="hidden sm:flex items-center gap-3 text-xs">
                                     <span className="text-emerald-400">
-                                        {attendancePct}% attendance
+                                        {attendancePct}% present
                                     </span>
                                     <span className="text-gray-600">|</span>
                                     <span className="text-sky-400">
                                         {report.monthly.totalWorkingHours}h
-                                        worked
+                                        done
                                     </span>
                                     {report.monthly.absentDays > 0 && (
                                         <>
@@ -682,12 +682,12 @@ export default function ViewReports() {
                                             color: "text-violet-400",
                                         },
                                         {
-                                            label: "Hours",
+                                            label: "Hours Done",
                                             value: `${report.monthly.totalWorkingHours}h`,
                                             color: "text-sky-400",
                                         },
                                         {
-                                            label: "Deficit",
+                                            label: "Shortage",
                                             value: `${report.monthly.hourDeficit}h`,
                                             color:
                                                 report.monthly.hourDeficit > 0
@@ -705,7 +705,7 @@ export default function ViewReports() {
                                             color: report.monthly.unpaidLeaves > 0 ? "text-red-400" : "text-gray-400",
                                         },
                                         {
-                                            label: "Debt (Mins)",
+                                            label: "Shortage (Mins)",
                                             value: report.monthly.totalTimeDebt,
                                             color: report.monthly.totalTimeDebt > 0 ? "text-red-400" : "text-gray-400",
                                         },
@@ -732,7 +732,7 @@ export default function ViewReports() {
                                         <div className="flex justify-between text-xs mb-1">
                                             <span className="text-gray-500 flex items-center gap-1">
                                                 <Users size={11} />
-                                                Attendance Rate
+                                                Days Present
                                             </span>
                                             <span className="text-white font-medium">
                                                 {attendancePct}%
@@ -751,7 +751,7 @@ export default function ViewReports() {
                                         <div className="flex justify-between text-xs mb-1">
                                             <span className="text-gray-500 flex items-center gap-1">
                                                 <Clock size={11} />
-                                                Hours Completion
+                                                Hours Done So Far
                                             </span>
                                             <span className="text-white font-medium">
                                                 {hoursPct}%
@@ -791,10 +791,10 @@ export default function ViewReports() {
                                                             Absent
                                                         </th>
                                                         <th className="text-center py-2 px-2">
-                                                            Exp. Hours
+                                                            Required
                                                         </th>
                                                         <th className="text-center py-2 px-2">
-                                                            Actual
+                                                            Done
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -853,11 +853,11 @@ export default function ViewReports() {
                                             className="shrink-0"
                                         />
                                         <p>
-                                            High hour deficit detected:{" "}
+                                            ⚠ Hours shortage is high:{" "}
                                             <strong>
                                                 {report.monthly.hourDeficit}h
                                             </strong>{" "}
-                                            behind expected.
+                                            less than required this month.
                                         </p>
                                     </div>
                                 )}

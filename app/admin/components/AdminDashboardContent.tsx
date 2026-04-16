@@ -166,10 +166,11 @@ export default function AdminDashboardContent({
                                     <TrendingUp size={20} className="text-amber-400" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-400 mb-0.5">Running Time Debt</p>
+                                    <p className="text-xs text-gray-400 mb-0.5">Total Shortage</p>
                                     <p className="text-xl font-bold text-white">
                                         {teacherStatus.totalTimeDebt} <span className="text-sm font-normal text-gray-500">mins</span>
                                     </p>
+                                    <p className="text-[10px] text-gray-600 mt-0.5">Less hours than required</p>
                                 </div>
                             </div>
 
@@ -193,6 +194,33 @@ export default function AdminDashboardContent({
                     </div>
                 </div>
             )}
+
+            {/* Class Timings Schedule */}
+            <div className="glass-strong rounded-2xl p-6 sm:p-8 mb-8 animate-fade-in-up-delay2 relative overflow-hidden">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                        <Clock size={20} className="text-emerald-400" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-semibold text-white">Class Timings</h2>
+                        <p className="text-sm text-gray-500">Weekly schedule reference</p>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { days: "Mon - Thu", time: "8:00 AM – 3:00 PM", color: "text-emerald-400", bg: "bg-emerald-500/5", border: "border-emerald-500/10" },
+                        { days: "Friday", time: "8:00 AM – 12:00 PM", color: "text-sky-400", bg: "bg-sky-500/5", border: "border-sky-500/10" },
+                        { days: "Saturday", time: "8:00 AM – 3:00 PM", color: "text-emerald-400", bg: "bg-emerald-500/5", border: "border-emerald-500/10" },
+                        { days: "Sunday", time: "Off Day", color: "text-rose-400", bg: "bg-rose-500/5", border: "border-rose-500/10" },
+                    ].map((row, i) => (
+                        <div key={i} className={`p-4 rounded-xl ${row.bg} border ${row.border} flex flex-col justify-center items-center text-center`}>
+                            <p className="text-sm font-medium text-gray-400 mb-1">{row.days}</p>
+                            <p className={`text-sm font-bold ${row.color}`}>{row.time}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
 
             {/* Quick Actions and Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -294,6 +294,49 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* ─── Class Timings Section ────────────────────────── */}
+            <section className="px-4 sm:px-6 lg:px-8 py-20">
+                <div className="max-w-4xl mx-auto">
+                    <div className="text-center mb-14">
+                        <p className="text-amber-400/80 text-sm font-medium tracking-widest uppercase mb-3">
+                            Schedule
+                        </p>
+                        <h2 className="text-3xl sm:text-4xl font-bold text-white">
+                            Class{" "}
+                            <span className="gradient-text">Timings</span>
+                        </h2>
+                    </div>
+
+                    <div className="glass rounded-2xl overflow-hidden">
+                        <div className="h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400" />
+                        <div className="p-6 sm:p-8">
+                            <div className="grid gap-3">
+                                {[
+                                    { days: "Monday – Thursday", time: "8:00 AM – 3:00 PM", hours: "7 hrs", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/10" },
+                                    { days: "Friday", time: "8:00 AM – 12:00 PM", hours: "4 hrs", color: "text-sky-400", bg: "bg-sky-500/10", border: "border-sky-500/10" },
+                                    { days: "Saturday", time: "8:00 AM – 3:00 PM", hours: "7 hrs", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/10" },
+                                    { days: "Sunday", time: "Off Day", hours: "—", color: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/10" },
+                                ].map((row, i) => (
+                                    <div
+                                        key={i}
+                                        className={`flex items-center justify-between p-4 rounded-xl ${row.bg} border ${row.border} transition-all hover:scale-[1.01]`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Clock size={16} className={row.color} />
+                                            <span className="text-sm sm:text-base font-medium text-white">{row.days}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-sm font-semibold ${row.color}`}>{row.time}</span>
+                                            <span className="text-xs text-gray-500 hidden sm:inline">({row.hours})</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* ─── Features Section (Attendance System) ───────────── */}
             <section className="px-4 sm:px-6 lg:px-8 py-20">
                 <div className="max-w-7xl mx-auto">
