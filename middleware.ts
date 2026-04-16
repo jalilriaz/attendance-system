@@ -60,14 +60,14 @@ export async function middleware(request: NextRequest) {
     const requiredRole = protectedRoutes[matchedRoute];
     const auth = await resolveAuth(request);
 
-    // No valid session at all → kick to login
+    // No valid session at all → kick to landing page
     if (!auth) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // Valid session but wrong role → kick to login
+    // Valid session but wrong role → kick to landing page
     if (auth.payload.role !== requiredRole) {
-        return NextResponse.redirect(new URL("/login", request.url));
+        return NextResponse.redirect(new URL("/", request.url));
     }
 
     const response = NextResponse.next();

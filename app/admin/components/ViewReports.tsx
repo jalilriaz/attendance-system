@@ -87,6 +87,7 @@ interface YearlyMonth {
     holidayList: HolidayInfo[];
     workingDays: number;
     expectedHours: number;
+    reports?: TeacherReport[];
 }
 
 interface YearlyReportsData {
@@ -214,15 +215,15 @@ export default function ViewReports() {
                 checkOut: string | null;
                 workingHours: number | null;
             }) => [
-                `"${r.teacherName}"`,
-                `"${r.teacherEmail}"`,
-                r.date,
-                r.day,
-                r.status === "—" ? `""` : `"${r.status}"`,
-                r.checkIn ? `"${r.checkIn}"` : `""`,
-                r.checkOut ? `"${r.checkOut}"` : `""`,
-                r.workingHours != null ? r.workingHours.toFixed(2) : `""`,
-            ]);
+                    `"${r.teacherName}"`,
+                    `"${r.teacherEmail}"`,
+                    r.date,
+                    r.day,
+                    r.status === "—" ? `""` : `"${r.status}"`,
+                    r.checkIn ? `"${r.checkIn}"` : `""`,
+                    r.checkOut ? `"${r.checkOut}"` : `""`,
+                    r.workingHours != null ? r.workingHours.toFixed(2) : `""`,
+                ]);
 
             const csvContent = [
                 headers.join(","),
@@ -259,7 +260,7 @@ export default function ViewReports() {
         return Math.round(
             (report.monthly.totalWorkingHours /
                 report.monthly.expectedMonthlyHours) *
-                100
+            100
         );
     };
 
@@ -367,42 +368,54 @@ export default function ViewReports() {
                                 <thead>
                                     <tr className="text-gray-500 border-b border-white/5">
                                         <th className="text-left py-3 pr-4 font-medium">Month</th>
-                                        <th className="text-center py-3 px-3 font-medium">Calendar Days</th>
-                                        <th className="text-center py-3 px-3 font-medium">Sundays</th>
                                         <th className="text-center py-3 px-3 font-medium">Holidays</th>
-                                        <th className="text-center py-3 px-3 font-medium">Working Days</th>
-                                        <th className="text-center py-3 px-3 font-medium">Expected Hours</th>
+                                        <th className="text-center py-3 px-3 font-medium">Exp. Days</th>
+                                        <th className="text-center py-3 px-3 font-medium text-emerald-400">Present</th>
+                                        <th className="text-center py-3 px-3 font-medium text-rose-400">Absent</th>
+                                        <th className="text-center py-3 px-3 font-medium">Exp. Hrs</th>
+                                        <th className="text-center py-3 px-3 font-medium text-sky-400">Actual Hrs</th>
+                                        <th className="text-center py-3 px-3 font-medium text-amber-400">Deficit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {yearlyData.months.map((m) => (
-                                        <tr key={m.month} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                                            <td className="py-3 pr-4 text-white font-medium">{m.monthName}</td>
-                                            <td className="py-3 px-3 text-center text-gray-400">{m.calendarDays}</td>
-                                            <td className="py-3 px-3 text-center text-orange-400">{m.sundays}</td>
-                                            <td className="py-3 px-3 text-center">
-                                                <span className={m.holidays > 0 ? "text-amber-400" : "text-gray-600"}>
-                                                    {m.holidays}
-                                                </span>
-                                                {m.holidays > 0 && (
-                                                    <div className="text-[10px] text-gray-600 mt-0.5">
-                                                        {m.holidayList.map(h => h.title).join(", ")}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="py-3 px-3 text-center text-emerald-400 font-semibold">{m.workingDays}</td>
-                                            <td className="py-3 px-3 text-center text-sky-400">{m.expectedHours}h</td>
-                                        </tr>
-                                    ))}
+                                    {yearlyData.months.map((m) => {
+                                        const teacherReport = m.reports?.[0]; // Assume single teacher for unified overview
+                                        return (
+                                            <tr key={m.month} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+                                                <td className="py-3 pr-4 text-white font-medium">{m.monthName}</td>
+                                                <td className="py-3 px-3 text-center">
+                                                    <span className={m.holidays > 0 ? "text-amber-400" : "text-gray-600"}>
+                                                        {m.holidays}
+                                                    </span>
+                                                </td>
+                                                <td className="py-3 px-3 text-center text-gray-300 font-medium">{m.workingDays}</td>
+                                                <td className="py-3 px-3 text-center text-emerald-400">{teacherReport?.monthly.presentDays ?? "—"}</td>
+                                                <td className="py-3 px-3 text-center text-rose-400">{teacherReport?.monthly.absentDays ?? "—"}</td>
+                                                <td className="py-3 px-3 text-center text-gray-300">{m.expectedHours}h</td>
+                                                <td className="py-3 px-3 text-center text-sky-400">{teacherReport?.monthly.totalWorkingHours ?? "—"}h</td>
+                                                <td className="py-3 px-3 text-center text-amber-400">{teacherReport?.monthly.hourDeficit ?? "—"}h</td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                                 <tfoot>
                                     <tr className="border-t border-white/10 font-bold">
                                         <td className="py-3 pr-4 text-white">TOTAL</td>
-                                        <td className="py-3 px-3 text-center text-white">{yearlyData.totals.totalCalendarDays}</td>
-                                        <td className="py-3 px-3 text-center text-orange-400">{yearlyData.totals.totalSundays}</td>
-                                        <td className="py-3 px-3 text-center text-amber-400">{yearlyData.totals.totalHolidays}</td>
-                                        <td className="py-3 px-3 text-center text-emerald-400">{yearlyData.totals.totalWorkingDays}</td>
-                                        <td className="py-3 px-3 text-center text-sky-400">{yearlyData.totals.totalExpectedHours}h</td>
+                                        <td className="py-3 px-3 text-center text-amber-500">{yearlyData.totals.totalHolidays}</td>
+                                        <td className="py-3 px-3 text-center text-gray-300">{yearlyData.totals.totalWorkingDays}</td>
+                                        <td className="py-3 px-3 text-center text-emerald-400">
+                                            {yearlyData.months.reduce((sum, m) => sum + (m.reports?.[0]?.monthly.presentDays || 0), 0)}
+                                        </td>
+                                        <td className="py-3 px-3 text-center text-rose-400">
+                                            {yearlyData.months.reduce((sum, m) => sum + (m.reports?.[0]?.monthly.absentDays || 0), 0)}
+                                        </td>
+                                        <td className="py-3 px-3 text-center text-gray-300">{yearlyData.totals.totalExpectedHours}h</td>
+                                        <td className="py-3 px-3 text-center text-sky-400">
+                                            {yearlyData.months.reduce((sum, m) => sum + (m.reports?.[0]?.monthly.totalWorkingHours || 0), 0).toFixed(2)}h
+                                        </td>
+                                        <td className="py-3 px-3 text-center text-amber-400">
+                                            {yearlyData.months.reduce((sum, m) => sum + (m.reports?.[0]?.monthly.hourDeficit || 0), 0).toFixed(2)}h
+                                        </td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -631,9 +644,8 @@ export default function ViewReports() {
                                 </div>
                                 <ChevronDown
                                     size={16}
-                                    className={`text-gray-500 transition-transform ${
-                                        isExpanded ? "rotate-180" : ""
-                                    }`}
+                                    className={`text-gray-500 transition-transform ${isExpanded ? "rotate-180" : ""
+                                        }`}
                                 />
                             </div>
                         </button>

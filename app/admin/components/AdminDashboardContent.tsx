@@ -17,11 +17,15 @@ import {
     BookOpen,
 } from "lucide-react";
 
-interface Stats {
-    totalTeachers: number;
-    presentToday: number;
-    onLeaveToday: number;
-    pendingRequests: number;
+interface TeacherStatus {
+    name: string;
+    totalTimeDebt: number;
+    attendance: {
+        checkIn: string | null;
+        checkOut: string | null;
+        status: string;
+    } | null;
+    leave: string | null;
 }
 
 interface Activity {
@@ -46,10 +50,20 @@ function formatPST(iso: string) {
     });
 }
 
+function formatTimePST(iso: string) {
+    return new Date(iso).toLocaleString("en-US", {
+        timeZone: "Asia/Karachi",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+}
+
 export default function AdminDashboardContent({
     onNavigate,
 }: AdminDashboardContentProps) {
-    const [stats, setStats] = useState<Stats | null>(null);
+    const [teacherStatus, setTeacherStatus] = useState<TeacherStatus | null>(null);
+    const [pendingRequests, setPendingRequests] = useState(0);
     const [activity, setActivity] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -58,7 +72,8 @@ export default function AdminDashboardContent({
             const res = await fetch("/api/admin/dashboard");
             const data = await res.json();
             if (data.success) {
-                setStats(data.stats);
+                setTeacherStatus(data.teacherStatus);
+                setPendingRequests(data.pendingRequests);
                 setActivity(data.activity);
             }
         } catch (error) {
@@ -72,37 +87,6 @@ export default function AdminDashboardContent({
         fetchDashboard();
     }, [fetchDashboard]);
 
-    const statCards = [
-        {
-            label: "Total Teachers",
-            value: stats?.totalTeachers ?? "—",
-            icon: Users,
-            color: "text-emerald-400",
-            bg: "bg-emerald-500/10",
-        },
-        {
-            label: "Present Today",
-            value: stats?.presentToday ?? "—",
-            icon: UserCheck,
-            color: "text-sky-400",
-            bg: "bg-sky-500/10",
-        },
-        {
-            label: "On Leave",
-            value: stats?.onLeaveToday ?? "—",
-            icon: CalendarOff,
-            color: "text-amber-400",
-            bg: "bg-amber-500/10",
-        },
-        {
-            label: "Pending Requests",
-            value: stats?.pendingRequests ?? "—",
-            icon: FileText,
-            color: "text-violet-400",
-            bg: "bg-violet-500/10",
-        },
-    ];
-
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20">
@@ -114,33 +98,101 @@ export default function AdminDashboardContent({
         );
     }
 
+    // Determine current visual status for the teacher
+    let displayStatus = "Not Checked In";
+    let statusColor = "text-gray-400";
+    let statusBg = "bg-gray-500/10";
+    let timeLabel = "";
+
+    if (teacherStatus?.leave) {
+        displayStatus = `On Leave (${teacherStatus.leave})`;
+        statusColor = "text-violet-400";
+        statusBg = "bg-violet-500/10";
+    } else if (teacherStatus?.attendance) {
+        const a = teacherStatus.attendance;
+        if (a.status === "Absent") {
+            displayStatus = "Absent";
+            statusColor = "text-rose-400";
+            statusBg = "bg-rose-500/10";
+        } else if (a.checkOut) {
+            displayStatus = `Checked Out (${a.status})`;
+            statusColor = "text-sky-400";
+            statusBg = "bg-sky-500/10";
+            timeLabel = `at ${formatTimePST(a.checkOut)}`;
+        } else if (a.checkIn) {
+            displayStatus = `Checked In (${a.status})`;
+            statusColor = "text-emerald-400";
+            statusBg = "bg-emerald-500/10";
+            timeLabel = `at ${formatTimePST(a.checkIn)}`;
+        }
+    }
+
     return (
         <div>
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade-in-up-delay">
-                {statCards.map((stat, i) => (
-                    <div
-                        key={i}
-                        className="glass-strong rounded-2xl p-5 hover:bg-white/[0.04] transition-all duration-300 group"
-                    >
-                        <div className="flex items-center justify-between mb-3">
-                            <div
-                                className={`w-10 h-10 ${stat.bg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}
-                            >
-                                <stat.icon
-                                    size={20}
-                                    className={stat.color}
-                                />
-                            </div>
-                            <TrendingUp size={14} className="text-gray-700" />
-                        </div>
-                        <p className="text-2xl font-bold text-white mb-0.5">
-                            {stat.value}
-                        </p>
-                        <p className="text-xs text-gray-500">{stat.label}</p>
+            {/* Teacher Hero Card */}
+            {teacherStatus && (
+                <div className="glass-strong rounded-2xl p-6 sm:p-8 mb-8 animate-fade-in-up-delay relative overflow-hidden">
+                    {/* Decorative Background Element */}
+                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                        <UserCheck size={120} />
                     </div>
-                ))}
-            </div>
+
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div>
+                            <p className="text-sm font-medium text-amber-400 mb-2 uppercase tracking-widest">
+                                Today's Status
+                            </p>
+                            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                                {teacherStatus.name}
+                            </h1>
+                            
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl ${statusBg} border border-white/5`}>
+                                    {displayStatus === "Absent" ? (
+                                        <CalendarOff size={18} className={statusColor} />
+                                    ) : (
+                                        <Clock size={18} className={statusColor} />
+                                    )}
+                                    <span className={`text-sm font-bold ${statusColor}`}>
+                                        {displayStatus} {timeLabel}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            <div className="glass-panel p-4 rounded-xl border border-white/5 flex items-center gap-4 min-w-[200px]">
+                                <div className="w-10 h-10 bg-amber-500/10 flex items-center justify-center rounded-lg shrink-0">
+                                    <TrendingUp size={20} className="text-amber-400" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-400 mb-0.5">Running Time Debt</p>
+                                    <p className="text-xl font-bold text-white">
+                                        {teacherStatus.totalTimeDebt} <span className="text-sm font-normal text-gray-500">mins</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            {pendingRequests > 0 && (
+                                <button 
+                                    onClick={() => onNavigate("leaves")}
+                                    className="p-4 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 transition-colors flex items-center justify-between group cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <FileText size={18} className="text-violet-400" />
+                                        <span className="text-sm font-medium text-violet-300">
+                                            Pending Requests
+                                        </span>
+                                    </div>
+                                    <div className="bg-violet-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        {pendingRequests}
+                                    </div>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Quick Actions and Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

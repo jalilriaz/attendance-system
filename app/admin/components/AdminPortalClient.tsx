@@ -8,7 +8,6 @@ import {
     CalendarDays,
     BarChart3,
     FileText,
-    Bell,
 } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import AdminDashboardContent from "./AdminDashboardContent";
@@ -53,8 +52,8 @@ export default function AdminPortalClient() {
         <div className="min-h-screen bg-[#0a0a0f] text-white relative">
             {/* Ambient background */}
             <div className="fixed inset-0 -z-10">
-                <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[120px] animate-float" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-500/4 rounded-full blur-[100px] animate-float-delay" />
+                <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-3xl opacity-50" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-500/4 rounded-full blur-3xl opacity-50" />
                 <div
                     className="absolute inset-0 opacity-[0.015]"
                     style={{
@@ -87,13 +86,6 @@ export default function AdminPortalClient() {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <button
-                                onClick={() => setActiveTab("leaves")}
-                                className="relative text-gray-500 hover:text-gray-300 transition-colors cursor-pointer"
-                            >
-                                <Bell size={18} />
-                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full" />
-                            </button>
                             <LogoutButton />
                         </div>
                     </div>
@@ -132,7 +124,7 @@ export default function AdminPortalClient() {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="sticky top-[72px] z-30 mb-6 flex items-center gap-1 glass rounded-xl p-1.5 overflow-x-auto shadow-lg shadow-black/20">
+                <div className="sticky top-[72px] z-30 mb-6 flex justify-center items-center gap-1 glass rounded-xl p-1.5 overflow-x-auto shadow-lg shadow-black/20">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}

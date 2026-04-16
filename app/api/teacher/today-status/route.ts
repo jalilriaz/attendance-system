@@ -12,8 +12,8 @@ export async function GET() {
             );
         }
 
-        // Trigger lazy-evaluation for 12 PM automatic absences
-        await processAutoAbsences();
+        // Trigger lazy-evaluation for 12 PM automatic absences asynchronously so we don't block render pipeline
+        processAutoAbsences().catch(console.error);
 
         const todayUTC = getTodayDateUTC();
 

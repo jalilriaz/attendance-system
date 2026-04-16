@@ -12,33 +12,51 @@ export async function GET() {
             );
         }
 
-        // Trigger lazy-evaluation for 12 PM automatic absences
-        await processAutoAbsences();
+        // Trigger lazy-evaluation for 12 PM automatic absences asynchronously so we don't block render pipeline
+        processAutoAbsences().catch(console.error);
 
         const todayUTC = getTodayDateUTC();
 
-        // Total teachers
-        const totalTeachers = await prisma.user.count({
+        // Fetch the primary teacher (Qari Sahib)
+        const primaryTeacher = await prisma.user.findFirst({
             where: { role: "teacher" },
+            select: { id: true, name: true, totalTimeDebt: true }
         });
 
-        // Present today
-        const presentToday = await prisma.attendance.count({
-            where: { date: todayUTC },
-        });
+        let teacherStatus = null;
 
-        // Approved leaves today
-        const onLeaveToday = await prisma.leave.count({
-            where: {
-                date: todayUTC,
-                status: "Approved",
-            },
-        });
+        if (primaryTeacher) {
+            // Check their attendance today
+            const attendance = await prisma.attendance.findUnique({
+                where: {
+                    userId_date: {
+                        userId: primaryTeacher.id,
+                        date: todayUTC
+                    }
+                }
+            });
 
-        // Pending leave requests
-        const pendingRequests = await prisma.leave.count({
-            where: { status: "Pending" },
-        });
+            // Check if they are on leave today
+            const leave = await prisma.leave.findUnique({
+                where: {
+                    userId_date: {
+                        userId: primaryTeacher.id,
+                        date: todayUTC
+                    }
+                }
+            });
+
+            teacherStatus = {
+                name: primaryTeacher.name,
+                totalTimeDebt: primaryTeacher.totalTimeDebt,
+                attendance: attendance ? {
+                    checkIn: attendance.checkIn,
+                    checkOut: attendance.checkOut,
+                    status: attendance.status
+                } : null,
+                leave: leave && leave.status === "Approved" ? leave.type : null
+            };
+        }
 
         // Recent activity (last 10 events)
         const recentAttendance = await prisma.attendance.findMany({
@@ -74,14 +92,14 @@ export async function GET() {
             )
             .slice(0, 8);
 
+        const pendingRequests = await prisma.leave.count({
+            where: { status: "Pending" },
+        });
+
         return Response.json({
             success: true,
-            stats: {
-                totalTeachers,
-                presentToday,
-                onLeaveToday,
-                pendingRequests,
-            },
+            teacherStatus,
+            pendingRequests,
             activity,
         });
     } catch (error) {

@@ -386,6 +386,7 @@ export async function GET(request: NextRequest) {
                     holidayList: p.holidays,
                     workingDays: p.expectedWorkingDays,
                     expectedHours: p.expectedMonthlyHours,
+                    reports: result.reports, // Ensure teacher specific calculations are not discarded
                 });
 
                 yearTotals.totalCalendarDays += p.totalCalendarDays;

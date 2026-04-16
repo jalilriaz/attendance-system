@@ -20,8 +20,8 @@ export default function TeacherPortalPage() {
         <div className="min-h-screen bg-[#0a0a0f] text-white relative">
             {/* Ambient background */}
             <div className="fixed inset-0 -z-10">
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] animate-float" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[100px] animate-float-delay" />
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-3xl opacity-50" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-3xl opacity-50" />
                 <div
                     className="absolute inset-0 opacity-[0.015]"
                     style={{
