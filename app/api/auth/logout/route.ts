@@ -6,21 +6,8 @@ export async function POST(request: NextRequest) {
         message: "Logged out successfully",
     });
 
-    response.cookies.set("token", "", {
-        httpOnly: true,
-        path: "/",
-        maxAge: 0,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-    });
-
-    response.cookies.set("refreshToken", "", {
-        httpOnly: true,
-        path: "/",
-        maxAge: 0,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-    });
+    response.cookies.delete("token");
+    response.cookies.delete("refreshToken");
 
     return response;
 }
